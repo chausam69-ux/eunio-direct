@@ -42,12 +42,13 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
   const [picked, setPicked] = useState<Set<number>>(new Set())
   const [showPrompt, setShowPrompt] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [grounded, setGrounded] = useState(true)
 
   async function run(e: React.FormEvent) {
     e.preventDefault()
     setBusy(true); setErr(''); setResults([]); setPicked(new Set())
     try {
-      const { data, error } = await supabase.functions.invoke<{ companies?: Candidate[]; error?: string }>('discover', { body: { industry, location, count } })
+      const { data, error } = await supabase.functions.invoke<{ companies?: Candidate[]; grounded?: boolean; error?: string }>('discover', { body: { industry, location, count } })
       if (error) {
         // FunctionsHttpError carries the JSON body with our message
         const ctx = (error as { context?: Response }).context
@@ -56,6 +57,7 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
       }
       if (data?.error) throw new Error(data.error)
       const list = data?.companies ?? []
+      setGrounded(data?.grounded !== false)
       setResults(list)
       setPicked(new Set(list.map((_, i) => i)))
       if (!list.length) setErr('No companies found. Try a broader industry or a bigger city.')
@@ -107,6 +109,7 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
 
       {results.length > 0 && (
         <>
+          {!grounded && <p className="mt-4 text-xs text-amber-300">Web search unavailable on the free Gemini tier — these come from the model's memory. Verify each on Google before calling.</p>}
           <ul className="mt-4 space-y-2 max-h-[50vh] overflow-y-auto">
             {results.map((c, i) => (
               <li key={i} className="flex gap-3 p-3 rounded-lg bg-steel-800 border border-steel-700">

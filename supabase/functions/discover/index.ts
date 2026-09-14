@@ -27,6 +27,10 @@ Rules:
 Respond with ONLY a JSON object, no markdown, shape:
 {"companies":[{"company":"","industry":"","location":"","website":"","potential_products":[],"why":"","confidence":"high|medium|low"}]}`
 
+const NO_SEARCH_NOTE = `
+
+NOTE: Web search is unavailable for this request. Answer from your own knowledge only. List ONLY established, well-known companies you are confident actually exist in that location. Prefer fewer, real companies over a full list. Set confidence to "medium" at most, and leave website "" unless you are sure.`
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
@@ -46,20 +50,25 @@ Deno.serve(async (req) => {
   const count = Math.min(Math.max(Number(body.count) || 8, 1), 20)
   if (!location) return json({ error: 'location required' }, 400)
 
-  const r = await fetch(`${GEMINI_URL}?key=${key}`, {
+  const ask = (grounded: boolean) => fetch(`${GEMINI_URL}?key=${key}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM }] },
+      systemInstruction: { parts: [{ text: SYSTEM + (grounded ? '' : NO_SEARCH_NOTE) }] },
       contents: [{ role: 'user', parts: [{ text: `Find up to ${count} companies. ${industry ? `Industry: ${industry}.` : 'Spread across the industries that consume stainless steel most (dairy/food equipment, pharma, chemical, architecture/railings, kitchen equipment, water treatment, automotive, furniture, sugar/brewery, solar structures) and fill the industry field for each.'} Location: ${location}, India.` }] }],
-      tools: [{ google_search: {} }],
+      ...(grounded ? { tools: [{ google_search: {} }] } : {}),
       generationConfig: { temperature: 0.2 },
     }),
   })
+
+  // Google Search grounding is not in the Gemini free tier (429 RESOURCE_EXHAUSTED).
+  // Try grounded first (works once billing is on), else fall back to model memory.
+  let grounded = true
+  let r = await ask(true)
+  if (r.status === 429) { grounded = false; r = await ask(false) }
   if (!r.ok) {
     const t = await r.text()
-    const status = r.status === 429 ? 429 : 502
-    return json({ error: r.status === 429 ? 'Gemini rate limit hit — wait a minute and retry' : `Gemini ${r.status}: ${t.slice(0, 200)}` }, status)
+    return json({ error: r.status === 429 ? 'Gemini quota exhausted — wait a minute and retry' : `Gemini ${r.status}: ${t.slice(0, 200)}` }, r.status === 429 ? 429 : 502)
   }
   const data = await r.json()
   const text: string = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
@@ -67,7 +76,7 @@ Deno.serve(async (req) => {
   if (!m) return json({ error: 'Gemini returned no JSON', raw: text.slice(0, 300) }, 502)
   try {
     const parsed = JSON.parse(m[0])
-    return json({ companies: Array.isArray(parsed.companies) ? parsed.companies : [] })
+    return json({ companies: Array.isArray(parsed.companies) ? parsed.companies : [], grounded })
   } catch {
     return json({ error: 'Gemini JSON unparsable', raw: text.slice(0, 300) }, 502)
   }
