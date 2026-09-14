@@ -28,7 +28,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <div className="text-brand text-xs uppercase tracking-widest">Vividium Direct Sales</div>
+        <div className="text-brand text-xs uppercase tracking-widest">Eunio Direct Sales</div>
         <h1 className="text-2xl font-semibold mt-1">Dashboard</h1>
       </div>
 

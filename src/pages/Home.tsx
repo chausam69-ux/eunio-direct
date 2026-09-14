@@ -6,9 +6,9 @@ export default function Home() {
   return (
     <div className="py-16 md:py-24">
       <div className="max-w-3xl">
-        <div className="text-brand text-xs uppercase tracking-widest mb-4">Channel 2 · Vividium Direct Sales</div>
+        <div className="text-brand text-xs uppercase tracking-widest mb-4">Eunio Services for Steel · Direct Sales</div>
         <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-          Build Vividium's Direct Sales Pipeline
+          Build Eunio's Direct Sales Pipeline
         </h1>
         <p className="mt-6 text-lg text-steel-200 max-w-2xl">
           Find the right industrial customers, understand their requirements, manage RFQs and quotations,

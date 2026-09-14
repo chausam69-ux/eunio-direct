@@ -1,6 +1,6 @@
-# Vividium Direct — Direct Sales Engine MVP
+# Eunio Direct — Direct Sales Engine MVP
 
-One goal: generate **one genuinely qualified direct lead** for Vividium Steel.
+One goal: generate **one genuinely qualified direct lead** for Eunio Services for Steel.
 
 Pages: `/` home · `/dashboard` funnel metrics · `/accounts` target companies (+ CSV import + AI discovery) · `/pipeline` deals kanban · `/products` catalogue.
 
@@ -12,7 +12,7 @@ Stack: Vite + React + Tailwind · Supabase (Postgres + magic-link login) · Netl
 1. Create a project at supabase.com (free tier).
 2. SQL Editor → paste `supabase/schema.sql` → Run.
 3. Authentication → Providers → Email: keep **Magic Link** on. Optionally turn off "Enable sign ups" after your team has logged in once, so strangers can't create accounts.
-4. Authentication → URL Configuration → Site URL = your Netlify URL (e.g. `https://vividium-direct.netlify.app`). Add `http://localhost:5173` to Redirect URLs for local dev.
+4. Authentication → URL Configuration → Site URL = your Netlify URL (e.g. `https://eunio-direct.netlify.app`). Add `http://localhost:5173` to Redirect URLs for local dev.
 5. Project Settings → API → copy **Project URL** and **anon public** key.
 
 ### 2. Anthropic
@@ -42,4 +42,4 @@ npm test               # metrics self-check
 5. **Dashboard** shows the funnel and what's due today.
 
 ## Product specs
-`products` table is seeded with names + grades Vividium confirmed. Sizes/thicknesses/finishes are empty on purpose — fill them from the real spec sheet on the Products page.
+`products` table is seeded with names + grades Eunio confirmed. Sizes/thicknesses/finishes are empty on purpose — fill them from the real spec sheet on the Products page.

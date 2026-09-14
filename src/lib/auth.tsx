@@ -36,14 +36,14 @@ function Login() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <form onSubmit={send} className="card p-8 w-full max-w-sm space-y-4">
         <div>
-          <div className="text-brand text-xs uppercase tracking-widest">Vividium Steel</div>
+          <div className="text-brand text-xs uppercase tracking-widest">Eunio Services for Steel</div>
           <h1 className="text-xl font-semibold mt-1">Direct Sales Engine</h1>
         </div>
         {sent ? (
           <p className="text-steel-200 text-sm">Magic link sent to <b>{email}</b>. Open it on this device.</p>
         ) : (
           <>
-            <input className="input" type="email" required placeholder="you@vividium.in" value={email} onChange={e => setEmail(e.target.value)} />
+            <input className="input" type="email" required placeholder="you@eunio.in" value={email} onChange={e => setEmail(e.target.value)} />
             {err && <p className="text-red-400 text-sm">{err}</p>}
             <button className="btn-primary w-full justify-center">Send login link</button>
           </>

@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 
 // POST /.netlify/functions/discover  { industry, location, products, count }
-// Returns candidate companies likely to buy Vividium's SS pipes/coils.
+// Returns candidate companies likely to buy Eunio's SS pipes/coils.
 // Every result is flagged unverified — the team must confirm before contacting.
 // ponytail: Netlify sync function, ~10-26s wall clock. If web search pushes past it,
 // move this file to a Supabase Edge Function (150s) or drop max_uses to 1.
@@ -32,8 +32,8 @@ const SCHEMA = {
   additionalProperties: false,
 } as const
 
-const SYSTEM = `You help Vividium Steel (Indian stainless steel manufacturer) find direct B2B customers.
-Vividium sells: round/square/oval stainless steel pipes and stainless steel coils, grades SS304, SS316, SS316L.
+const SYSTEM = `You help Eunio Services for Steel (Indian stainless steel supplier) find direct B2B customers.
+Eunio sells: round/square/oval stainless steel pipes and stainless steel coils, grades SS304, SS316, SS316L.
 
 Find REAL companies that consume these products in the requested industry and location. Use web search to confirm each company exists and to get its website. Prefer manufacturers, fabricators, OEMs, EPC contractors, and builders who buy steel as raw material — not traders or other steel mills.
 

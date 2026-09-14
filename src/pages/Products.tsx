@@ -19,7 +19,7 @@ export default function Products() {
         <h1 className="text-2xl font-semibold mr-auto">Products</h1>
         <button className="btn-primary" onClick={() => setEditing('new')}>+ Add product</button>
       </div>
-      <p className="text-sm text-steel-400">Vividium's catalogue. Sizes, thicknesses and finishes are blank until filled from the real spec sheet — nothing invented.</p>
+      <p className="text-sm text-steel-400">Eunio's catalogue. Sizes, thicknesses and finishes are blank until filled from the real spec sheet — nothing invented.</p>
       <div className="grid md:grid-cols-2 gap-3">
         {data.map(p => (
           <button key={p.id} onClick={() => setEditing(p)} className="card p-4 text-left hover:border-brand cursor-pointer">
@@ -68,7 +68,7 @@ function ProductForm({ product, onClose, onSaved }: { product: Product | null; o
         <Field label="Name"><input className="input" value={f.name} onChange={e => set('name', e.target.value)} /></Field>
         <Field label="Category"><input className="input" value={f.category} onChange={e => set('category', e.target.value)} /></Field>
         <Field label="Grades (comma separated)"><input className="input" value={f.grades} onChange={e => set('grades', e.target.value)} placeholder="SS304, SS316, SS316L" /></Field>
-        <Field label="Sizes"><input className="input" value={f.sizes} onChange={e => set('sizes', e.target.value)} placeholder='e.g. 1/2", 3/4", 1" — from Vividium spec sheet' /></Field>
+        <Field label="Sizes"><input className="input" value={f.sizes} onChange={e => set('sizes', e.target.value)} placeholder='e.g. 1/2", 3/4", 1" — from Eunio spec sheet' /></Field>
         <Field label="Thicknesses"><input className="input" value={f.thicknesses} onChange={e => set('thicknesses', e.target.value)} placeholder="e.g. 1.2mm, 1.5mm, 2mm" /></Field>
         <Field label="Finishes"><input className="input" value={f.finishes} onChange={e => set('finishes', e.target.value)} placeholder="e.g. Mirror, Matt, Hairline" /></Field>
         <Field label="Availability"><input className="input" value={f.availability} onChange={e => set('availability', e.target.value)} placeholder="Ex-stock / 2 weeks / made to order" /></Field>

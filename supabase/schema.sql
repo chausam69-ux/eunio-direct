@@ -1,4 +1,4 @@
--- Vividium Direct Sales Engine — run once in Supabase SQL editor.
+-- Eunio Direct Sales Engine — run once in Supabase SQL editor.
 
 create extension if not exists "pgcrypto";
 
@@ -91,8 +91,8 @@ create policy "team all" on products for all to authenticated using (true) with 
 create policy "team all" on opportunities for all to authenticated using (true) with check (true);
 create policy "team all" on activities for all to authenticated using (true) with check (true);
 
--- Product catalogue: names/grades confirmed by Vividium. Sizes/thickness/finish
--- deliberately empty — fill from Vividium's real spec sheet, do not invent.
+-- Product catalogue: names/grades confirmed by Eunio. Sizes/thickness/finish
+-- deliberately empty — fill from Eunio's real spec sheet, do not invent.
 insert into products (name, category, grades) values
   ('Round Stainless Steel Pipe',  'Pipes', '{SS304,SS316,SS316L}'),
   ('Square Stainless Steel Pipe', 'Pipes', '{SS304,SS316,SS316L}'),

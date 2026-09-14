@@ -1,9 +1,9 @@
-# Vividium Direct Sales Engine — MVP design
+# Eunio Direct Sales Engine — MVP design
 
 Date: 2026-09-14. Approved verbally ("build one then we'll see").
 
 ## Goal
-Prove Vividium can generate one qualified direct lead. Not a SaaS.
+Prove Eunio can generate one qualified direct lead. Not a SaaS.
 
 ## Decisions
 - Users: small trusted team (2–5), shared data. Supabase magic-link login; RLS = any authenticated user has full access.

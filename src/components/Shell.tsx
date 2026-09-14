@@ -16,7 +16,7 @@ export default function Shell() {
       <header className="border-b border-steel-700 bg-steel-900/80 backdrop-blur sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-6">
           <NavLink to="/" className="font-semibold tracking-tight">
-            <span className="text-brand">Vividium</span> Direct
+            <span className="text-brand">Eunio</span> Direct
           </NavLink>
           <nav className="flex gap-1 text-sm">
             {links.map(l => (
