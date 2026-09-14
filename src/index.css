@@ -23,3 +23,4 @@ body { @apply bg-steel-950 text-steel-100 antialiased; font-family: ui-sans-seri
 .input { @apply w-full bg-steel-800 border border-steel-600 rounded-lg px-3 py-2 text-sm text-steel-100 placeholder-steel-400 focus:outline-none focus:border-brand; }
 .label { @apply block text-xs uppercase tracking-wide text-steel-400 mb-1; }
 .badge { @apply inline-block px-2 py-0.5 rounded-full text-xs font-medium; }
+input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: #e8b04b; cursor: pointer; flex-shrink: 0; }
