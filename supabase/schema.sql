@@ -98,3 +98,13 @@ insert into products (name, category, grades) values
   ('Square Stainless Steel Pipe', 'Pipes', '{SS304,SS316,SS316L}'),
   ('Oval Stainless Steel Pipe',   'Pipes', '{SS304,SS316,SS316L}'),
   ('Stainless Steel Coil',        'Coils', '{SS304,SS316,SS316L}');
+
+-- Team-wide settings (key/value). 'profile' = Eunio's own details for email signatures.
+create table settings (
+  key text primary key,
+  value jsonb not null default '{}',
+  updated_at timestamptz not null default now()
+);
+alter table settings enable row level security;
+create policy "team all" on settings for all to authenticated using (true) with check (true);
+insert into settings (key, value) values ('profile', '{"company":"Eunio Services for Steel"}');

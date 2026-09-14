@@ -5,6 +5,7 @@ import { useData } from '../lib/useData'
 import type { Account, Activity, Contact, NewAccount } from '../lib/types'
 import { STATUS_LABEL } from '../lib/types'
 import { ErrorBox, Field, Modal } from './ui'
+import Pitch from './Pitch'
 
 const PRODUCTS = ['Round SS Pipe', 'Square SS Pipe', 'Oval SS Pipe', 'SS Coil']
 const today = () => new Date().toISOString().slice(0, 10)
@@ -82,15 +83,24 @@ export default function AccountForm({ account, onClose, onSaved }: { account: Ac
         </div>
       </form>
 
-      {account && <Contacts accountId={account.id} />}
+      {account && <ContactsAndPitch account={account} />}
       {account && <Activities account={account} />}
       {account && <NewDeal account={account} />}
     </Modal>
   )
 }
 
-function Contacts({ accountId }: { accountId: string }) {
-  const { data, reload } = useData(() => db.contacts.forAccount(accountId), [accountId])
+function ContactsAndPitch({ account }: { account: Account }) {
+  const { data, reload } = useData(() => db.contacts.forAccount(account.id), [account.id])
+  return (
+    <>
+      <Contacts accountId={account.id} data={data} reload={reload} />
+      <Pitch account={account} contacts={data ?? []} />
+    </>
+  )
+}
+
+function Contacts({ accountId, data, reload }: { accountId: string; data: Contact[] | null; reload: () => void }) {
   const [c, setC] = useState({ name: '', role: '', phone: '', email: '' })
   async function add(e: React.FormEvent) {
     e.preventDefault()

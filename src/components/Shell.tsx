@@ -7,6 +7,7 @@ const links = [
   { to: '/accounts', label: 'Accounts' },
   { to: '/pipeline', label: 'Pipeline' },
   { to: '/products', label: 'Products' },
+  { to: '/settings', label: 'Our company' },
 ]
 
 export default function Shell() {

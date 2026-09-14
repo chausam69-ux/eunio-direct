@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Accounts from './pages/Accounts'
 import Pipeline from './pages/Pipeline'
 import Products from './pages/Products'
+import Settings from './pages/Settings'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="/accounts" element={<Accounts />} />
             <Route path="/pipeline" element={<Pipeline />} />
             <Route path="/products" element={<Products />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
