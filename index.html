@@ -8,6 +8,7 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>var p=sessionStorage.getItem("spa-path");if(p){sessionStorage.removeItem("spa-path");history.replaceState(null,"","/eunio-direct"+p)}</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

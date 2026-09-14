@@ -28,7 +28,7 @@ function Login() {
   async function send(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } })
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL } })
     if (error) setErr(error.message); else setSent(true)
   }
 

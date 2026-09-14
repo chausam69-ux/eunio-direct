@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>Eunio Direct</title>
+<script>
+  // GitHub Pages has no SPA rewrite. Stash the path and bounce to index.html.
+  var p = location.pathname.replace(/^\/eunio-direct/, '');
+  sessionStorage.setItem('spa-path', p + location.search + location.hash);
+  location.replace('/eunio-direct/');
+</script>

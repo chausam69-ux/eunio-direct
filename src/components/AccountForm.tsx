@@ -68,7 +68,7 @@ export default function AccountForm({ account, onClose, onSaved }: { account: Ac
         <Field label="Next action"><input className="input" value={f.next_action ?? ''} onChange={e => set('next_action', e.target.value)} placeholder="Call purchase head re: SS304 pipe requirement" /></Field>
         <Field label="Next action date"><input className="input" type="date" value={f.next_action_date ?? ''} onChange={e => set('next_action_date', e.target.value || null)} /></Field>
         <div className="md:col-span-2"><Field label="Notes"><textarea className="input" rows={3} value={f.notes ?? ''} onChange={e => set('notes', e.target.value)} /></Field></div>
-        {f.source === 'ai' && (
+        {account && !account.verified && (
           <label className="md:col-span-2 flex items-center gap-2 text-sm">
             <input type="checkbox" checked={f.verified} onChange={e => set('verified', e.target.checked)} />
             Verified — I checked this company is real and relevant

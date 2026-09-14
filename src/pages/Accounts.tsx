@@ -44,7 +44,8 @@ export default function Accounts() {
           .filter(r => r.company?.trim())
           .map(r => ({
             company: r.company.trim(), industry: r.industry || null, location: r.location || null,
-            website: r.website || null, notes: r.notes || null, source: 'csv',
+            website: r.website || null, notes: r.notes || null, source: 'csv', verified: false,
+            next_action: 'Verify company + find purchase contact', next_action_date: new Date().toISOString().slice(0, 10),
             potential_products: (r.potential_products || '').split(/[;|]/).map(s => s.trim()).filter(Boolean),
             priority: (['high', 'medium', 'low'].includes(r.priority) ? r.priority : 'medium') as NewAccount['priority'],
           }))
@@ -109,7 +110,7 @@ function Row({ a, onOpen }: { a: Account; onOpen: () => void }) {
       <td className="px-4 py-3">
         <div className="font-medium">{a.company}</div>
         {a.website && <a href={a.website.startsWith('http') ? a.website : `https://${a.website}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-steel-400 hover:text-brand">{a.website}</a>}
-        {a.source === 'ai' && !a.verified && <span className="badge bg-amber-500/20 text-amber-300 ml-2">unverified</span>}
+        {!a.verified && <span className="badge bg-amber-500/20 text-amber-300 ml-2">unverified</span>}
       </td>
       <td className="px-4 py-3 text-steel-200">{a.industry}</td>
       <td className="px-4 py-3 text-steel-200">{a.location}</td>
