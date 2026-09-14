@@ -4,7 +4,7 @@
 // suggestions — UI flags them unverified.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
