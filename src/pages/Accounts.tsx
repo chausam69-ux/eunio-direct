@@ -18,6 +18,7 @@ export default function Accounts() {
   const [q, setQ] = useState('')
   const [status, setStatus] = useState<AccountStatus | ''>('')
   const [csvMsg, setCsvMsg] = useState('')
+  const [sel, setSel] = useState<Set<string>>(new Set())
 
   const openId = params.get('open')
   const showNew = params.get('new') === '1'
@@ -25,6 +26,12 @@ export default function Accounts() {
   const editing = openId ? accounts?.find(a => a.id === openId) ?? null : null
 
   const close = () => setParams({})
+
+  async function deleteSelected() {
+    if (!sel.size || !confirm(`Delete ${sel.size} account(s) and their contacts/deals?`)) return
+    try { await db.accounts.removeMany([...sel]); setSel(new Set()); reload() } catch (e) { setCsvMsg((e as Error).message) }
+  }
+  const toggle = (id: string) => setSel(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
   const rows = useMemo(() => {
     if (!accounts) return []
@@ -60,6 +67,7 @@ export default function Accounts() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold mr-auto">Target Accounts</h1>
+        {sel.size > 0 && <button className="btn-ghost text-red-300" onClick={deleteSelected}>Delete {sel.size}</button>}
         <label className="btn-ghost">
           Import CSV
           <input type="file" accept=".csv" className="hidden" onChange={e => e.target.files?.[0] && importCsv(e.target.files[0])} />
@@ -86,13 +94,14 @@ export default function Accounts() {
           <table className="w-full text-sm">
             <thead className="text-xs uppercase text-steel-400 border-b border-steel-700">
               <tr>
+                <th className="px-3 py-3"><input type="checkbox" checked={rows.length > 0 && rows.every(a => sel.has(a.id))} onChange={e => setSel(e.target.checked ? new Set(rows.map(a => a.id)) : new Set())} /></th>
                 {['Company', 'Industry', 'Location', 'Products', 'Priority', 'Status', 'Last activity', 'Next action'].map(h => (
                   <th key={h} className="text-left font-medium px-4 py-3 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map(a => <Row key={a.id} a={a} onOpen={() => setParams({ open: a.id })} />)}
+              {rows.map(a => <Row key={a.id} a={a} selected={sel.has(a.id)} onToggle={() => toggle(a.id)} onOpen={() => setParams({ open: a.id })} />)}
             </tbody>
           </table>
         </div>
@@ -104,9 +113,10 @@ export default function Accounts() {
   )
 }
 
-function Row({ a, onOpen }: { a: Account; onOpen: () => void }) {
+function Row({ a, selected, onToggle, onOpen }: { a: Account; selected: boolean; onToggle: () => void; onOpen: () => void }) {
   return (
-    <tr className="border-b border-steel-800 hover:bg-steel-800/60 cursor-pointer" onClick={onOpen}>
+    <tr className={`border-b border-steel-800 hover:bg-steel-800/60 cursor-pointer ${selected ? 'bg-steel-800/40' : ''}`} onClick={onOpen}>
+      <td className="px-3 py-3" onClick={e => e.stopPropagation()}><input type="checkbox" checked={selected} onChange={onToggle} /></td>
       <td className="px-4 py-3">
         <div className="font-medium">{a.company}</div>
         {a.website && <a href={a.website.startsWith('http') ? a.website : `https://${a.website}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="text-xs text-steel-400 hover:text-brand">{a.website}</a>}

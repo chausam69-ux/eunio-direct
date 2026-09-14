@@ -6,9 +6,12 @@ import { ErrorBox, Field, Modal } from './ui'
 // Discovery = Supabase Edge Function `discover` → Gemini free tier + Google Search.
 // Fallback (no key / rate limit): copy prompt into Claude.ai/Gemini, import the CSV.
 
+interface Person { name: string; role?: string; phone?: string; email?: string }
 interface Candidate {
   company: string; industry: string; location: string; website: string
+  phone?: string; email?: string; address?: string
   potential_products: string[]; why: string; confidence: 'high' | 'medium' | 'low'
+  contacts?: Person[]
 }
 const CONF = { high: 'text-emerald-300', medium: 'text-amber-300', low: 'text-red-300' }
 const CSV_COLUMNS = 'company,industry,location,website,potential_products,priority,notes'
@@ -65,16 +68,30 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
   }
 
   async function add() {
-    const rows = results.filter((_, i) => picked.has(i)).map(c => ({
+    const chosen = results.filter((_, i) => picked.has(i))
+    const rows = chosen.map(c => ({
       company: c.company, industry: c.industry, location: c.location, website: c.website || null,
       potential_products: Array.isArray(c.potential_products) ? c.potential_products : [],
       priority: (c.confidence === 'high' ? 'high' : 'medium') as 'high' | 'medium',
-      source: 'ai' as const, verified: false, notes: `AI: ${c.why}`,
+      source: 'ai' as const, verified: false,
+      notes: [`AI: ${c.why}`, c.address && `Address: ${c.address}`].filter(Boolean).join('\n'),
       next_action: 'Verify company + find purchase contact', next_action_date: today(),
     }))
     if (!rows.length) return
     setBusy(true)
-    try { await db.accounts.insert(rows); onAdded() } catch (e) { setErr((e as Error).message); setBusy(false) }
+    try {
+      const inserted = await db.accounts.insert(rows)
+      const idByCompany = Object.fromEntries(inserted.map(a => [a.company, a.id]))
+      const contacts = chosen.flatMap(c => {
+        const id = idByCompany[c.company]
+        if (!id) return []
+        const people = (c.contacts ?? []).filter(p => p.name).map((p, i) => ({ account_id: id, name: p.name, role: p.role || null, phone: p.phone || null, email: p.email || null, is_primary: i === 0 }))
+        const office = (c.phone || c.email) ? [{ account_id: id, name: 'Main office', role: 'Switchboard', phone: c.phone || null, email: c.email || null, is_primary: people.length === 0 }] : []
+        return [...people, ...office]
+      })
+      await db.contacts.insertMany(contacts)
+      onAdded()
+    } catch (e) { setErr((e as Error).message); setBusy(false) }
   }
 
   async function copy() {
@@ -118,6 +135,8 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
                   <div className="font-medium">{c.company} <span className={`text-xs ${CONF[c.confidence] ?? CONF.low}`}>· {c.confidence} confidence</span></div>
                   <div className="text-steel-400">{c.industry} · {c.location} {c.website && <>· <a className="hover:text-brand" href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank" rel="noreferrer">{c.website}</a></>}</div>
                   <div className="text-steel-300 mt-1">{c.why}</div>
+                  {(c.phone || c.email || c.address) && <div className="text-xs text-steel-400 mt-1">{[c.phone, c.email, c.address].filter(Boolean).join(' · ')}</div>}
+                  {(c.contacts ?? []).filter(p => p.name).map((p, j) => <div key={j} className="text-xs text-steel-400">Contact: {p.name}{p.role && ` — ${p.role}`}{p.phone && ` · ${p.phone}`}{p.email && ` · ${p.email}`}</div>)}
                   <div className="text-xs text-steel-500 mt-1">{(c.potential_products ?? []).join(', ')}</div>
                 </div>
               </li>

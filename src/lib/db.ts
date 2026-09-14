@@ -12,10 +12,12 @@ export const db = {
     insert: async (rows: Partial<NewAccount>[]) => must<Account[]>(await supabase.from('accounts').insert(rows).select()),
     update: async (id: string, patch: Partial<NewAccount>) => must<Account>(await supabase.from('accounts').update(patch).eq('id', id).select().single()),
     remove: async (id: string) => { must(await supabase.from('accounts').delete().eq('id', id)) },
+    removeMany: async (ids: string[]) => { must(await supabase.from('accounts').delete().in('id', ids)) },
   },
   contacts: {
     forAccount: async (accountId: string) => must<Contact[]>(await supabase.from('contacts').select('*').eq('account_id', accountId).order('is_primary', { ascending: false })),
     insert: async (row: Omit<Contact, 'id'>) => must<Contact>(await supabase.from('contacts').insert(row).select().single()),
+    insertMany: async (rows: Omit<Contact, 'id'>[]) => { if (rows.length) must(await supabase.from('contacts').insert(rows)) },
     remove: async (id: string) => { must(await supabase.from('contacts').delete().eq('id', id)) },
   },
   opportunities: {

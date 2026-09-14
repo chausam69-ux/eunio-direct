@@ -23,9 +23,10 @@ Rules:
 - confidence: "high" only if search confirmed the company AND its use of stainless steel; else "medium"; "low" if weak.
 - potential_products: subset of ["Round SS Pipe","Square SS Pipe","Oval SS Pipe","SS Coil"].
 - why: one sentence — what they make and why they need SS pipes/coils.
+- Contact info: collect EVERY contact detail you can find for the company — main phone, email, full address, and named people (owner, director, purchase/procurement head, plant head) with role, phone, email. Only include details you actually found or are certain of; NEVER guess or fabricate phone numbers or emails — use "" instead.
 
 Respond with ONLY a JSON object, no markdown, shape:
-{"companies":[{"company":"","industry":"","location":"","website":"","potential_products":[],"why":"","confidence":"high|medium|low"}]}`
+{"companies":[{"company":"","industry":"","location":"","website":"","phone":"","email":"","address":"","potential_products":[],"why":"","confidence":"high|medium|low","contacts":[{"name":"","role":"","phone":"","email":""}]}]}`
 
 const NO_SEARCH_NOTE = `
 
