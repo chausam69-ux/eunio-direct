@@ -32,6 +32,11 @@ const NO_SEARCH_NOTE = `
 
 NOTE: Web search is unavailable for this request. Answer from your own knowledge only. List ONLY established, well-known companies you are confident actually exist in that location. Prefer fewer, real companies over a full list. Set confidence to "medium" at most, and leave website "" unless you are sure.`
 
+const ENRICH = `You extract B2B contact details from company websites. For each company listed, read the URLs given (home page and contact page) and return ONLY what is actually present on those pages: main phone numbers, email addresses, full postal address, and any named people with roles (directors, owners, purchase/procurement heads, sales or plant heads) with their phone/email if shown. If a page cannot be read or has nothing, return empty strings. NEVER invent details.
+
+Respond with ONLY a JSON object, no markdown, shape:
+{"companies":[{"company":"<exact name as given>","phone":"","email":"","address":"","contacts":[{"name":"","role":"","phone":"","email":""}]}]}`
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
@@ -72,13 +77,47 @@ Deno.serve(async (req) => {
     return json({ error: r.status === 429 ? 'Gemini quota exhausted — wait a minute and retry' : `Gemini ${r.status}: ${t.slice(0, 200)}` }, r.status === 429 ? 429 : 502)
   }
   const data = await r.json()
-  const text: string = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? ''
-  const m = text.match(/\{[\s\S]*\}/) // tolerate stray prose / code fences around the JSON
-  if (!m) return json({ error: 'Gemini returned no JSON', raw: text.slice(0, 300) }, 502)
-  try {
-    const parsed = JSON.parse(m[0])
-    return json({ companies: Array.isArray(parsed.companies) ? parsed.companies : [], grounded })
-  } catch {
-    return json({ error: 'Gemini JSON unparsable', raw: text.slice(0, 300) }, 502)
+  const first = parseJson(data)
+  if (!first) return json({ error: 'Gemini returned no JSON' }, 502)
+  let companies: Company[] = Array.isArray(first.companies) ? first.companies : []
+
+  // Pass 2: read each company's website (url_context is on the free tier) to pull
+  // real phones / emails / people instead of relying on memory.
+  const withSites = companies.filter(c => c.website)
+  if (withSites.length) {
+    try {
+      const urls = withSites.slice(0, 10).map(c => {
+        const base = c.website.startsWith('http') ? c.website : `https://${c.website}`
+        return `${c.company}: ${base} and ${base.replace(/\/$/, '')}/contact-us`
+      }).join('\n')
+      const r2 = await fetch(`${GEMINI_URL}?key=${key}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: ENRICH }] },
+          contents: [{ role: 'user', parts: [{ text: `Visit these websites (and their contact pages) and extract contact details:\n${urls}` }] }],
+          tools: [{ url_context: {} }],
+          generationConfig: { temperature: 0.1 },
+        }),
+      })
+      if (r2.ok) {
+        const found = parseJson(await r2.json())
+        const byName: Record<string, Company> = Object.fromEntries((found?.companies ?? []).map((c: Company) => [c.company.toLowerCase(), c]))
+        companies = companies.map(c => {
+          const f = byName[c.company.toLowerCase()]
+          return f ? { ...c, phone: c.phone || f.phone || '', email: c.email || f.email || '', address: c.address || f.address || '', contacts: [...(c.contacts ?? []), ...(f.contacts ?? [])] } : c
+        })
+      }
+    } catch (_) { /* enrichment is best-effort */ }
   }
+  return json({ companies, grounded })
 })
+
+interface Company { company: string; website: string; phone?: string; email?: string; address?: string; contacts?: unknown[]; [k: string]: unknown }
+
+function parseJson(data: { candidates?: { content?: { parts?: { text?: string }[] } }[] }) {
+  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text ?? '').join('') ?? ''
+  const m = text.match(/\{[\s\S]*\}/) // tolerate stray prose / code fences around the JSON
+  if (!m) return null
+  try { return JSON.parse(m[0]) } catch { return null }
+}
