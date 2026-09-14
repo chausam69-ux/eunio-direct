@@ -51,7 +51,7 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
     e.preventDefault()
     setBusy(true); setErr(''); setResults([]); setPicked(new Set())
     try {
-      const { data, error } = await supabase.functions.invoke<{ companies?: Candidate[]; grounded?: boolean; error?: string }>('discover', { body: { industry, location, count } })
+      const { data, error } = await supabase.functions.invoke<{ companies?: Candidate[]; grounded?: boolean; enriched?: number; enrichError?: string; error?: string }>('discover', { body: { industry, location, count } })
       if (error) {
         // FunctionsHttpError carries the JSON body with our message
         const ctx = (error as { context?: Response }).context
@@ -64,6 +64,8 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
       setResults(list)
       setPicked(new Set(list.map((_, i) => i)))
       if (!list.length) setErr('No companies found. Try a broader industry or a bigger city.')
+      else if (data?.enrichError) setErr(`Companies found, but contact lookup failed: ${data.enrichError}`)
+      else if (!data?.enriched) setErr('Companies found, but no contact details could be read from their websites.')
     } catch (e) { setErr((e as Error).message) } finally { setBusy(false) }
   }
 

@@ -35,7 +35,7 @@ NOTE: Web search is unavailable for this request. Answer from your own knowledge
 const ENRICH = `You extract B2B contact details from company websites. For each company listed, read the URLs given (home page and contact page) and return ONLY what is actually present on those pages: main phone numbers, email addresses, full postal address, and any named people with roles (directors, owners, purchase/procurement heads, sales or plant heads) with their phone/email if shown. If a page cannot be read or has nothing, return empty strings. NEVER invent details.
 
 Respond with ONLY a JSON object, no markdown, shape:
-{"companies":[{"company":"<exact name as given>","phone":"","email":"","address":"","contacts":[{"name":"","role":"","phone":"","email":""}]}]}`
+{"companies":[{"company":"<exact name as given>","website":"<the URL given>","phone":"","email":"","address":"","contacts":[{"name":"","role":"","phone":"","email":""}]}]}`
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -84,6 +84,8 @@ Deno.serve(async (req) => {
   // Pass 2: read each company's website (url_context is on the free tier) to pull
   // real phones / emails / people instead of relying on memory.
   const withSites = companies.filter(c => c.website)
+  let enriched = 0
+  let enrichError = ''
   if (withSites.length) {
     try {
       const urls = withSites.slice(0, 10).map(c => {
@@ -102,15 +104,23 @@ Deno.serve(async (req) => {
       })
       if (r2.ok) {
         const found = parseJson(await r2.json())
-        const byName: Record<string, Company> = Object.fromEntries((found?.companies ?? []).map((c: Company) => [c.company.toLowerCase(), c]))
+        const list: Company[] = found?.companies ?? []
+        // Match by website host first (names drift: "Ltd." vs "Limited"), then loose name match.
+        const host = (u?: string) => (u || '').toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
+        const norm = (n?: string) => (n || '').toLowerCase().replace(/[^a-z0-9]/g, '')
         companies = companies.map(c => {
-          const f = byName[c.company.toLowerCase()]
-          return f ? { ...c, phone: c.phone || f.phone || '', email: c.email || f.email || '', address: c.address || f.address || '', contacts: [...(c.contacts ?? []), ...(f.contacts ?? [])] } : c
+          const f = list.find(x => host(x.website) && host(x.website) === host(c.website))
+            ?? list.find(x => norm(x.company) && (norm(x.company).includes(norm(c.company).slice(0, 8)) || norm(c.company).includes(norm(x.company).slice(0, 8))))
+          if (!f) return c
+          enriched++
+          return { ...c, phone: c.phone || f.phone || '', email: c.email || f.email || '', address: c.address || f.address || '', contacts: [...(c.contacts ?? []), ...((f.contacts ?? []) as unknown[])] }
         })
+      } else {
+        enrichError = `Gemini enrich ${r2.status}`
       }
-    } catch (_) { /* enrichment is best-effort */ }
+    } catch (e) { enrichError = (e as Error).message }
   }
-  return json({ companies, grounded })
+  return json({ companies, grounded, enriched, enrichError })
 })
 
 interface Company { company: string; website: string; phone?: string; email?: string; address?: string; contacts?: unknown[]; [k: string]: unknown }
