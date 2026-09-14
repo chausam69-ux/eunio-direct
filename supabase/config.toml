@@ -1,0 +1,4 @@
+project_id = "fmwtgkhqqtverbmrxzui"
+
+[functions.discover]
+verify_jwt = false   # we verify the user ourselves via auth.getUser() (works with publishable keys)
