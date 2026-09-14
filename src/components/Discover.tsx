@@ -13,12 +13,14 @@ interface Candidate {
 const CONF = { high: 'text-emerald-300', medium: 'text-amber-300', low: 'text-red-300' }
 const CSV_COLUMNS = 'company,industry,location,website,potential_products,priority,notes'
 const today = () => new Date().toISOString().slice(0, 10)
+// Common stainless-steel-consuming segments; hints only, free text allowed.
+const INDUSTRIES = ['Dairy & food processing equipment', 'Pharma & chemical plants', 'Architecture, railings & facades', 'Commercial kitchen equipment', 'Water treatment & plumbing', 'Automotive & exhaust', 'Furniture & interiors', 'Sugar, brewery & distillery', 'Solar & renewable structures', 'Hospital & lab furniture']
 
 function buildPrompt(industry: string, location: string, count: number) {
   return `You are helping Eunio Services for Steel, an Indian stainless steel supplier, find direct B2B customers.
 Eunio sells round, square and oval stainless steel pipes and stainless steel coils in grades SS304, SS316 and SS316L.
 
-Task: search the web and list up to ${count} REAL companies in the "${industry}" industry located in ${location} that consume these products as raw material (manufacturers, fabricators, OEMs, EPC contractors, builders). Exclude traders and other steel mills.
+Task: search the web and list up to ${count} REAL companies ${industry ? `in the "${industry}" industry` : 'across industries that consume stainless steel (dairy/food equipment, pharma, chemical, architecture/railings, kitchen equipment, water treatment, automotive, furniture, sugar/brewery, solar structures)'} located in ${location} that consume these products as raw material (manufacturers, fabricators, OEMs, EPC contractors, builders). Exclude traders and other steel mills.
 
 Rules:
 - Only include companies you actually found evidence for. Never invent names or websites. Leave website blank if unsure.
@@ -81,7 +83,10 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
   return (
     <Modal title="Find target customers with AI" onClose={onClose} wide>
       <form onSubmit={run} className="grid md:grid-cols-4 gap-3 items-end">
-        <Field label="Industry"><input className="input" required value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Dairy equipment, Pharma, Railings…" /></Field>
+        <Field label="Industry (optional)">
+          <input className="input" list="industries" value={industry} onChange={e => setIndustry(e.target.value)} placeholder="Leave blank — AI picks" />
+          <datalist id="industries">{INDUSTRIES.map(i => <option key={i} value={i} />)}</datalist>
+        </Field>
         <Field label="Location"><input className="input" required value={location} onChange={e => setLocation(e.target.value)} placeholder="Ahmedabad / Gujarat" /></Field>
         <Field label="How many"><input className="input" type="number" min={1} max={20} value={count} onChange={e => setCount(Number(e.target.value))} /></Field>
         <button className="btn-primary justify-center" disabled={busy}>{busy ? 'Searching…' : 'Search'}</button>
@@ -94,7 +99,7 @@ export default function Discover({ onClose, onAdded }: { onClose: () => void; on
       {showPrompt && (
         <div className="mt-3 p-3 rounded-lg bg-steel-800 border border-steel-700 text-sm">
           <p className="text-steel-300">Paste into <a className="text-brand" href="https://claude.ai/new" target="_blank" rel="noreferrer">Claude</a> or <a className="text-brand" href="https://gemini.google.com/app" target="_blank" rel="noreferrer">Gemini</a>, save the CSV it returns, then <b>Import CSV</b> on Accounts.</p>
-          <button type="button" className="btn-ghost mt-2" disabled={!industry || !location} onClick={copy}>{copied ? 'Copied ✓' : 'Copy prompt'}</button>
+          <button type="button" className="btn-ghost mt-2" disabled={!location} onClick={copy}>{copied ? 'Copied ✓' : 'Copy prompt'}</button>
         </div>
       )}
 

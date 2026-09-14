@@ -44,14 +44,14 @@ Deno.serve(async (req) => {
   const industry = String(body.industry ?? '').slice(0, 100)
   const location = String(body.location ?? '').slice(0, 100)
   const count = Math.min(Math.max(Number(body.count) || 8, 1), 20)
-  if (!industry || !location) return json({ error: 'industry and location required' }, 400)
+  if (!location) return json({ error: 'location required' }, 400)
 
   const r = await fetch(`${GEMINI_URL}?key=${key}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents: [{ role: 'user', parts: [{ text: `Find up to ${count} companies. Industry: ${industry}. Location: ${location}, India.` }] }],
+      contents: [{ role: 'user', parts: [{ text: `Find up to ${count} companies. ${industry ? `Industry: ${industry}.` : 'Spread across the industries that consume stainless steel most (dairy/food equipment, pharma, chemical, architecture/railings, kitchen equipment, water treatment, automotive, furniture, sugar/brewery, solar structures) and fill the industry field for each.'} Location: ${location}, India.` }] }],
       tools: [{ google_search: {} }],
       generationConfig: { temperature: 0.2 },
     }),
